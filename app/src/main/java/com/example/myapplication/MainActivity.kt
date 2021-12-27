@@ -8,6 +8,7 @@ import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -15,9 +16,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
@@ -30,10 +37,67 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            boxLargerWithAnimation()
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+                ){
+                circularProgressBar(0.8f,100)
+            }
         }
     }
 }
+
+// Animated circular
+@Composable
+fun circularProgressBar(
+    percentage : Float,
+    number : Int,
+    fontSize : TextUnit = 25.sp,
+    radius : Dp = 50.dp,
+    color : Color = Color.Green,
+    strokeWidth : Dp = 8.dp,
+    animDuration : Int = 1000,
+    delayDuration : Int = 0
+){
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+    var currentPercentage = animateFloatAsState(
+        targetValue = if (isLoading) percentage else 0f,
+        animationSpec = tween(
+            durationMillis = animDuration,
+            delayMillis = delayDuration
+        )
+    )
+    LaunchedEffect(key1 = true){
+        isLoading = true
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(radius * 2f)
+    ) {
+        Canvas(
+            modifier = Modifier.fillMaxSize()
+        ){
+            drawArc(
+                color = color,
+                startAngle = -90f,
+                sweepAngle = 360 * currentPercentage.value ,
+                useCenter = false,
+                style = Stroke(width = strokeWidth.toPx(),cap = StrokeCap.Round)
+            )
+        }
+        Text(
+            text = (currentPercentage.value * number).toInt().toString(),
+            color = Color.Black,
+            fontSize = fontSize,
+            fontWeight = FontWeight.Bold
+
+        )
+    }
+}
+
 
 // Part 11
 @Composable
